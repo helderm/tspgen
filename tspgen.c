@@ -5,12 +5,15 @@
 #include "mpi.h"
 #include "common.h"
 #include "map.h"
+#include "population.h"
 
 int mpiId = 0;
 
 int main(int argc, char **argv){
     tspsMap_t map;
     tspsConfig_t config;
+    tspsPopulation_t population;
+
     unsigned long int numGenerations = 0;
     int mpiNumProcs = 0;
 
@@ -25,6 +28,11 @@ int main(int argc, char **argv){
     if(readConfig(&config, argc, argv) != TSPS_RC_SUCCESS){
         return TSPS_RC_FAILURE;
     }
+
+    if(generatePopulation(&population, &config) != TSPS_RC_SUCCESS){
+        return TSPS_RC_FAILURE;
+    }   
+
 
     // initialize random seed:
     srand ( time(NULL)*mpiId );

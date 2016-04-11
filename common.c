@@ -79,7 +79,7 @@ int readConfig(tspsConfig_t *config, int argc, char **argv){
     logg("-- Num of Generations = [%d]\n", config->numGenerations);
     logg("-- Num of Elitism = [%d]\n", config->numElitism);
     logg("-- Mutation Size = [%d]\n", config->mutationSize);
-    logg("-- Max Breeding = [%d]\n", config->maxBreeding);
+    logg("-- Max Breeding = [%d]\n", config->maxBreeding);  
 
     return TSPS_RC_SUCCESS;
 
