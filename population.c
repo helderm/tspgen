@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "common.h"
 #include "population.h"
+#include "map.h"
 
 int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
@@ -48,7 +49,18 @@ int *generateRandomChromosome(int chSize){
 
 int calculateFitnessChromosome( int *chromosome){
 	int fitnessValue=0;	
-	// fitness calculation......
+	tspsMap_t map;
+	if(parseMap(&map) != TSPS_RC_SUCCESS){
+        	printf("Error! Unable to read map 'maps/brazil58.tsp'!\n");
+        	return TSPS_RC_FAILURE;
+    	}
+	int i, firstCity, secondCity; 
+	for (i=0; i<NUM_NODES-1; i++){
+		firstCity = chromosome[i];
+		secondCity = chromosome[i+1];
+		fitnessValue = fitnessValue +  map.weights[firstCity][secondCity];		
+	}
+	printf("%d ", fitnessValue);	
 	return fitnessValue;
 }
 
