@@ -13,13 +13,13 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
     	int i;
 	
-    	for(i=0; i<10; i++){//pop->numIndividuals; i++){
+    	for(i=0; i<pop->numIndividuals; i++){
 		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES); //<random vector of unique nodes>	
 		pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome);
-	}
-	
-
-    	return TSPS_RC_SUCCESS;
+		pop->individuals[i].index = i;
+		
+	}  	
+	return TSPS_RC_SUCCESS;
 }
 
 int *generateRandomChromosome(int chSize){	
@@ -43,7 +43,7 @@ int *generateRandomChromosome(int chSize){
             		arr[j] = arr[i];
             		arr[i] = t;
         	}
-    	}	
+    	}
 	return arr;
 }
 
@@ -60,7 +60,7 @@ int calculateFitnessChromosome( int *chromosome){
 		secondCity = chromosome[i+1];
 		fitnessValue = fitnessValue +  map.weights[firstCity][secondCity];		
 	}
-	printf("%d ", fitnessValue);	
+	//printf("%d ", fitnessValue);	
 	return fitnessValue;
 }
 
@@ -69,3 +69,23 @@ void swap (int *a, int *b){
     	*a = *b;
     	*b = temp;
 }
+
+int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
+	
+	qsort(pop->individuals, config->populationSize, sizeof(tspsIndividual_t), compare);	
+	int i;
+	for (i=0; i < config->populationSize; i++){
+		printf("%d ", pop->individuals[i].fitness);
+	}
+	return TSPS_RC_SUCCESS;
+}
+	
+int compare (const void *a, const void *b)
+{
+
+  tspsIndividual_t * popA = (tspsIndividual_t *)a;
+  tspsIndividual_t * popB = (tspsIndividual_t *)b;
+
+  return ( popB->fitness - popA->fitness );
+}
+
