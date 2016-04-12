@@ -4,7 +4,7 @@
 #include "common.h"
 
 typedef struct{
-    int chromossome[NUM_NODES];
+    int *chromosome;
     int fitness;
 }tspsIndividual_t;
 
@@ -14,6 +14,9 @@ typedef struct{
 }tspsPopulation_t;
 
 int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config);
+int *generateRandomChromosome(int chSize);
+void swap(int *a, int *b);
+int calculateFitnessChromosome(int *chromosome);
 
 #endif /* POPULATION_H_ */
 
