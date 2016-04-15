@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <mpi.h>
+#include <math.h>
 #include "common.h"
 #include "population.h"
 #include "map.h"
@@ -82,7 +83,7 @@ int compare (const void *a, const void *b)
   tspsIndividual_t * popA = (tspsIndividual_t *)a;
   tspsIndividual_t * popB = (tspsIndividual_t *)b;
 
-  return ( popB->fitness - popA->fitness );
+  return ( popA->fitness - popB->fitness );
 }
 
 int mutatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
@@ -244,4 +245,39 @@ int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
         pop->individuals[j].fitness = INFINITY;
         free(imigrant2);
     }
+}
+
+int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs){
+    MPI_Status status;
+    int i, j;
+    int indPerPop = floor(pop->numIndividuals / mpiNumProcs);
+    int indIdx = indPerPop;
+
+    if(mpiId == 0){
+        // get the top individuals from other populations
+        for(i=1; i<mpiNumProcs; i++){
+            for(j=0; j<indPerPop; j++){
+                MPI_Recv(pop->individuals[indIdx].chromosome, NUM_NODES, MPI_INT, i, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status);
+                indIdx++;
+            }
+        }
+    }else{
+        for(j=0; j<indPerPop; j++){
+            MPI_Send(pop->individuals[j].chromosome, NUM_NODES, MPI_INT, 0, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+            indIdx++;
+        }
+    }
+}
+
+void printIndividual(tspsIndividual_t *ind, const char *label){
+    int i;
+    logg("** %s\n", label);
+    logg("-- fitness = [%d]\n", ind->fitness);
+    logg("-- chromos = ");
+    for(i=0; i<NUM_NODES; i++){
+        logg("[%d]", ind->chromosome[i]);
+        if((i+1) % 10 == 0)
+            logg("\n\t");
+    }
+    logg("\n--------------------------------------------------------------\n");
 }

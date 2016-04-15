@@ -6,7 +6,6 @@
 
 #define NUM_NODES 58
 #define MPI_MIGRATION_TAG 100
-#define INFINITY 999999
 
 typedef struct{
     int populationSize;
