@@ -74,10 +74,18 @@ int main(int argc, char **argv){
         	// end execution
         	if(config.numGenerations > 0 && numGenerations == config.numGenerations){
         		logg("* Max number of generations [%d] reached!\n", config.numGenerations);
+                calculateFitnessPopulation(&population, &map);
         		break;
         	}
 
         	// migrate population at every n generation
+
+            if(numGenerations % config.migrationRate == 0){
+                logg("* Migration event! \n");
+                migrateIndividuals(&population, mpiId, mpiNumProcs);
+            }
+
+
 
             if(numGenerations % 1000 == 0){
                 logg("- Generation %d...\n", numGenerations);

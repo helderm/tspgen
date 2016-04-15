@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <mpi.h>
 #include "common.h"
 #include "population.h"
 #include "map.h"
@@ -11,28 +12,29 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
     	pop->numIndividuals = config->populationSize;
     	pop->individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
 
-    	int i;	
+    	int i;
     	for(i=0; i<pop->numIndividuals; i++){
-    		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES); //<random vector of unique nodes>	
-    		//pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome);
-    		pop->individuals[i].index = i;		
-        }  	
+    		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES); //<random vector of unique nodes>
+
+            //pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome);
+    		pop->individuals[i].index = i;
+        }
 
 	return TSPS_RC_SUCCESS;
 }
 
-int *generateRandomChromosome(int chSize){	
-	int *arr = (int	*)malloc(chSize*sizeof(int)); 
-	int i; 
+int *generateRandomChromosome(int chSize){
+	int *arr = (int	*)malloc(chSize*sizeof(int));
+	int i;
 	for(i=0; i<chSize; i++){
 		arr[i]=i;   // city index starts from zero
 	}
-	
+
 	struct timeval tv;
     	gettimeofday(&tv, NULL);
     	int usec = tv.tv_usec;
     	srand48(usec);
-	
+
 	int n =chSize;
     	if (n > 1) {
         	size_t i;
@@ -47,14 +49,14 @@ int *generateRandomChromosome(int chSize){
 }
 
 int calculateFitnessChromosome(int *chromosome, tspsMap_t *map){
-	int fitnessValue=0;	
-	int i, firstCity, secondCity; 
+	int fitnessValue=0;
+	int i, firstCity, secondCity;
 	for (i=0; i<NUM_NODES-1; i++){
 		firstCity = chromosome[i];
 		secondCity = chromosome[i+1];
-		fitnessValue = fitnessValue +  map->weights[firstCity][secondCity];		
+		fitnessValue = fitnessValue +  map->weights[firstCity][secondCity];
 	}
-	//printf("%d ", fitnessValue);	
+	//printf("%d ", fitnessValue);
 	return fitnessValue;
 }
 
@@ -65,15 +67,15 @@ void swap (int *a, int *b){
 }
 
 int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
-	
-	qsort(pop->individuals, config->populationSize, sizeof(tspsIndividual_t), compare);	
+
+	qsort(pop->individuals, config->populationSize, sizeof(tspsIndividual_t), compare);
 	int i;
 	for (i=0; i < config->populationSize; i++){
 		printf("%d ", pop->individuals[i].fitness);
 	}
 	return TSPS_RC_SUCCESS;
 }
-	
+
 int compare (const void *a, const void *b)
 {
 
@@ -139,7 +141,7 @@ int mutatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 }
 
 int sortPopulation(tspsPopulation_t *pop){
-    qsort(pop->individuals, pop->numIndividuals, sizeof(tspsIndividual_t), compare); 
+    qsort(pop->individuals, pop->numIndividuals, sizeof(tspsIndividual_t), compare);
     return TSPS_RC_SUCCESS;
 }
 
@@ -152,8 +154,94 @@ int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
 
     for(i=0; i<pop->numIndividuals; i++){
         pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome, map);
-    }   
+    }
 
     return TSPS_RC_SUCCESS;
 }
 
+int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
+
+    int *emigrant1 = NULL, *emigrant2 = NULL;
+    int *imigrant1 = NULL, *imigrant2 = NULL;
+    int i=0, j=-1;
+    MPI_Status status;
+    int chromSize = sizeof(int) * NUM_NODES;
+
+    //choose randomly for now the individual to migrate
+    i = rand() % pop->numIndividuals;
+    emigrant1 = pop->individuals[i].chromosome;
+    imigrant1 = (int*)malloc(chromSize);
+
+    // choose another emigrant if they are in the middle of the process chain
+    if(mpiId > 0 && mpiId < numProcs-1){
+        do{
+            j = rand() % pop->numIndividuals;
+        } while(j == i);
+
+        emigrant2 = pop->individuals[j].chromosome;
+        imigrant2 = (int*)malloc(chromSize);
+    }
+
+    /* red/black communication*/
+    if (mpiId % 2 != 0){
+        /* i'm red */
+
+        if(mpiId < numProcs - 1){
+            /* send emigrant to black at my right */
+            //printf("+ Pr[%d]: Sending to [%d]... \n", mpiId, mpiId+1);
+            MPI_Send(emigrant1, NUM_NODES, MPI_INT, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+
+            /* receive imigrant from black at my right */
+            //printf("+ Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId+1);
+            MPI_Recv(imigrant1, NUM_NODES, MPI_INT, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+        }
+
+        if(mpiId > 0){
+            /* send emigrant to black at my left */
+            //printf("+ Pr[%d]: Sending to [%d]... \n", mpiId, mpiId-1);
+            MPI_Send((mpiId < numProcs - 1? emigrant2 : emigrant1), NUM_NODES, MPI_INT, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+
+            /* receive imigrant from black at my left */
+            //printf("+ Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId-1);
+            MPI_Recv((mpiId < numProcs - 1? imigrant2 : imigrant1), NUM_NODES, MPI_INT, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+        }
+
+    } else {
+        /* i'm black */
+        if(mpiId > 0){
+            /* receive imigrant from red at my left */
+            //printf("- Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId-1);
+            MPI_Recv(imigrant1, NUM_NODES, MPI_INT, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+
+            /* send emigrant to red at my left */
+            //printf("- Pr[%d]: Sending to [%d]... \n", mpiId, mpiId-1);
+            MPI_Send(emigrant1, NUM_NODES, MPI_INT, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+        }
+
+        if(mpiId < numProcs-1){
+            /* receive imigrant from red at my right */
+            //printf("- Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId+1);
+            MPI_Recv((mpiId > 0? imigrant2 : imigrant1), NUM_NODES, MPI_INT, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+
+            /* send emigrant to red at my right */
+            //printf("- Pr[%d]: Sending to [%d]... \n", mpiId, mpiId+1);
+            MPI_Send((mpiId > 0? emigrant2 : emigrant1), NUM_NODES, MPI_INT, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+        }
+    }
+
+    logg("* Migration ended!\n");
+
+    // move imigrants to our current population
+    if(numProcs > 1){
+        memcpy(pop->individuals[i].chromosome, imigrant1, chromSize);
+        pop->individuals[i].fitness = INFINITY;
+        logg("- imigrant = %d, %d, %d...\n", pop->individuals[i].chromosome[0], pop->individuals[i].chromosome[1], pop->individuals[i].chromosome[2]);
+    }
+    free(imigrant1);
+
+    if(mpiId > 0 && mpiId < numProcs-1){
+        memcpy(pop->individuals[j].chromosome, imigrant2, chromSize);
+        pop->individuals[j].fitness = INFINITY;
+        free(imigrant2);
+    }
+}
