@@ -15,10 +15,10 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
     	int i;
     	for(i=0; i<pop->numIndividuals; i++){
-    		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES, i); //<random vector of unique nodes>	
+    		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES, i); //<random vector of unique nodes>
     		//pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome);
-    		//pop->individuals[i].index = i;		
-        }  	
+    		//pop->individuals[i].index = i;
+        }
 //    		pop->individuals[i].chromosome = generateRandomChromosome(NUM_NODES); //<random vector of unique nodes>
 
             //pop->individuals[i].fitness = calculateFitnessChromosome(pop->individuals[i].chromosome);
@@ -28,10 +28,10 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	return TSPS_RC_SUCCESS;
 }
 
-int *generateRandomChromosome(int chSize, int index){	
-	int *arr = (int	*)malloc(chSize*sizeof(int)); 
+int *generateRandomChromosome(int chSize, int index){
+	int *arr = (int	*)malloc(chSize*sizeof(int));
 	//int arr[NUM_NODES]={0};
-	int i; 
+	int i;
 	for(i=0; i<chSize; i++){
 		arr[i]=i;   // city index starts from zero
 	}
@@ -40,7 +40,7 @@ int *generateRandomChromosome(int chSize, int index){
     	gettimeofday(&tv, NULL);
     	int usec = tv.tv_usec+index;
     	srand48(usec);
-		
+
 	int n =chSize;
     	if (n > 1) {
         	size_t i;
@@ -55,7 +55,7 @@ int *generateRandomChromosome(int chSize, int index){
 	for(i=0; i<chSize; i++){
 		printf("%d ", arr[i]);   // city index starts from zero
 	}printf("\n");
-	*/	
+	*/
 	return arr;
 }
 
@@ -78,8 +78,8 @@ void swap (int *a, int *b){
 }
 
 /*int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
-	
-	qsort(pop->individuals, config->populationSize, sizeof(tspsIndividual_t), compare);	
+
+	qsort(pop->individuals, config->populationSize, sizeof(tspsIndividual_t), compare);
 =======
 int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
@@ -92,7 +92,7 @@ int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	return TSPS_RC_SUCCESS;
 <<<<<<< HEAD
 }*/
-	
+
 
 int compare (const void *a, const void *b)
 {
@@ -168,119 +168,119 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsPopulation_t *pop_buffer, tsp
 	int i, j, k, l;
 	//pop_buffer->numIndividuals = config->populationSize;
         //pop_buffer->individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
-	
+
 	double fitness_sum;
 	for (i=0; i < config->populationSize; i++){
 		fitness_sum = fitness_sum +  pop->individuals[i].fitness;
 	}
-	for (i=0; i < config->populationSize; i++){	
+	for (i=0; i < config->populationSize; i++){
 		pop->individuals[i].probability = pop->individuals[i].fitness/fitness_sum  ;
 	//	printf("%lf\n", pop->individuals[i].probability);
 	}
-	
+
 	/*for(i=0; i<config->numElitism; i++ ){
 		pop_buffer->individuals[i] = pop->individuals[i];
-	}*/	
+	}*/
 	/*
 	printf("\nTHE ELITES \n");
 	for (i=0; i<config->numElitism; i++){
 		for (j=0; j<NUM_NODES; j++){
 			printf("%d ", pop->individuals[i].chromosome[j] );
 		}
-		printf("\n");		
+		printf("\n");
 	}
 	printf("\n");
-	*/	
+	*/
 	double rndNumber_one, rndNumber_two ;
 	int cross_pone, cross_ptwo;
-	
+
 	double offset_one = 0.0;
 	double offset_two = 0.0;
-	
+
 	int pick_one = 0, pick_two = 0;
 	int count = config->numElitism;
-	
+
 	int temp;
 	int max = NUM_NODES -1;
 	int min = 1;
-	// numElitism should be a even number	
+	// numElitism should be a even number
 	while(count < config->populationSize){
 		rndNumber_one = rand() / (double) RAND_MAX;
 		rndNumber_two = rand() / (double) RAND_MAX;
 		count = count+2;
 		for (i = 0; i < config->populationSize; i++) {
-			offset_one += pop->individuals[i].probability;	
+			offset_one += pop->individuals[i].probability;
 			if (rndNumber_one < offset_one) {
         			pick_one = i;
         			break;
-    			}	
-		}	
+    			}
+		}
 		for (i = 0; i < config->populationSize; i++) {
 			offset_two += pop->individuals[i].probability;
-    			
+
 			if (rndNumber_two < offset_two) {
         			pick_two = i;
         			break;
-    			}	
+    			}
 		}
 		offset_one=0; offset_two=0;
-		
+
 		//pmx function
-		cross_pone = (max - min + 1)*(double)rand()/RAND_MAX + min;		
-		cross_ptwo = (max - min + 1)*(double)rand()/RAND_MAX + min; 
-		
+		cross_pone = (max - min + 1)*(double)rand()/RAND_MAX + min;
+		cross_ptwo = (max - min + 1)*(double)rand()/RAND_MAX + min;
+
 		if(cross_ptwo<cross_pone){
 			temp= cross_ptwo;
 			cross_ptwo = cross_pone;
-			cross_pone = temp; 
+			cross_pone = temp;
 		}
-			
+
 	//	printf("count: %d:%d :: %d %d", count-1, count, cross_pone, cross_ptwo);
 	//		printf("\n ");
-			
+
 		int *child_1 = pop->individuals[count-2].chromosome; //parent(1) number 10
 		int *child_2 = pop->individuals[count-1].chromosome; //parent(2) number 11
-		/*	
+		/*
 		for (i=0; i<NUM_NODES; i++){
 			printf("%d ",child_1[i] );
-		}		
+		}
 			printf("\n ");
 		for (i=0; i<NUM_NODES; i++){
 			printf("%d ",child_2[i] );
-		}		
+		}
 		*/
 		int *vec_1 = (int*)malloc((cross_ptwo-cross_pone)*sizeof(int));
 		int *vec_2 = (int*)malloc((cross_ptwo-cross_pone)*sizeof(int));
 		int num=0;
 		//printf("\n ");
-		
+
 		for (i = cross_pone; i < cross_ptwo; i++ ){
 			int tem = child_1[i];
 			child_1[i] = child_2[i]; //
-			child_2[i] = tem; //		 
-			
+			child_2[i] = tem; //
+
 			vec_1[num] = child_1[i];
 			vec_2[num] = child_2[i];
 			num++;
 		}
-		
+
 		for(i = 0; i<cross_pone; i++){
 			child_1[i] = pop->individuals[count-2].chromosome[i];
-			child_2[i] = pop->individuals[count-1].chromosome[i];		 
-		}		
+			child_2[i] = pop->individuals[count-1].chromosome[i];
+		}
 		for(i = cross_ptwo; i<NUM_NODES; i++){
 			child_1[i] = pop->individuals[count-2].chromosome[i];
-			child_2[i] = pop->individuals[count-1].chromosome[i];	
+			child_2[i] = pop->individuals[count-1].chromosome[i];
 		}
-		/*	
+		/*
 		printf("\n");
 		for (i = 0; i < num; i++ ){
 			printf("%d ", vec_1[i] );
 		}
 		printf("\n");
-		
+
 		for (i = 0; i < num; i++ ){
-			printf("%d ", vec_2[i] );	
+			printf("%d ", vec_2[i] );
 		}
 		printf("\n\n");
 		*/
@@ -294,74 +294,74 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsPopulation_t *pop_buffer, tsp
 				if((vec_1[i]==vec_2[j])&&(vec_1[i]!=vec_2[i] )){
 					buf = vec_1[i];
 					vec_1[i] = vec_1[j];
-					vec_1[j] = buf; 	
+					vec_1[j] = buf;
 					flag=1;
 					continue;
 				}
 			}
 		}
-		/*	
+		/*
 		for (i = 0; i < num; i++ ){
 			printf("%d ",vec_1[i] );
 		}
 		printf("\n");
-		
+
 		for (i = 0; i < num; i++ ){
-			printf("%d ",vec_2[i] );	
+			printf("%d ",vec_2[i] );
 		}
 		printf("\nfinals........................");
 		*/
 		for (i=0; i<num; i++){
 			for(j = 0; j<cross_pone; j++){
 				if(vec_1[i]==child_1[j]){
-					child_1[j] = vec_2[i]; 	
+					child_1[j] = vec_2[i];
 				}
 				if(vec_2[i]==child_2[j]){
-					child_2[j] = vec_1[i]; 	
+					child_2[j] = vec_1[i];
 				}
-						 
-			}		
+
+			}
 			for(j = cross_ptwo; j<NUM_NODES; j++){
 				if(vec_1[i]==child_1[j]){
-					child_1[j] = vec_2[i]; 	
+					child_1[j] = vec_2[i];
 				}
 				if(vec_2[i]==child_2[j]){
-					child_2[j] = vec_1[i]; 	
-				}		
-			}	
+					child_2[j] = vec_1[i];
+				}
+			}
 		}
-		/*	
+		/*
 		printf("\n");
-		
+
 		for (i = 0; i < NUM_NODES; i++ ){
 			printf("%d ", child_1[i] );
 		}
 		printf("\n");
-		
+
 		for (i = 0; i < NUM_NODES; i++ ){
-			printf("%d ", child_2[i] );	
+			printf("%d ", child_2[i] );
 		}
 		printf("\n\n\n");
 		*/
 	}
-	
+
 	printf("%d \n", pop->individuals[0].fitness);
-	/*for(j=0; j<NUM_NODES; j++){     
-        	printf("%d ", pop->individuals[0].chromosome[j]);  
+	/*for(j=0; j<NUM_NODES; j++){
+        	printf("%d ", pop->individuals[0].chromosome[j]);
         } printf("\n");*/
 	return 0;
 }
 
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
     	int i,j;
-	
+
 	/*
 	for(i=0; i<pop->numIndividuals; i++){
-		for(j=0; j<NUM_NODES; j++){	
+		for(j=0; j<NUM_NODES; j++){
 			printf("%d ", pop->individuals[i].chromosome[j]);   // city index starts from zero
 		} printf("\n");
 	}
-	
+
 	printf("\n");
 	*/
     	for(i=0; i<pop->numIndividuals; i++){
@@ -458,7 +458,7 @@ int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
     }
 }
 
-int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs){
+int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs, tspsMap_t *map){
     MPI_Status status;
     int i, j;
     int indPerPop = floor(pop->numIndividuals / mpiNumProcs);
@@ -469,6 +469,7 @@ int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs){
         for(i=1; i<mpiNumProcs; i++){
             for(j=0; j<indPerPop; j++){
                 MPI_Recv(pop->individuals[indIdx].chromosome, NUM_NODES, MPI_INT, i, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status);
+                pop->individuals[indIdx].fitness = calculateFitnessChromosome(pop->individuals[indIdx].chromosome, map);
                 indIdx++;
             }
         }

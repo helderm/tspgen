@@ -9,7 +9,7 @@ typedef struct{
     	int fitness;
   	double probability;
 	int index;
-	
+
 }tspsIndividual_t;
 
 typedef struct{
@@ -31,7 +31,7 @@ int mutatePopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map);
 
 int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs);
-int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs);
+int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs, tspsMap_t *map);
 void printIndividual(tspsIndividual_t *ind, const char *label);
 #endif /* POPULATION_H_ */
 
