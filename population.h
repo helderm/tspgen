@@ -5,9 +5,11 @@
 #include "map.h"
 
 typedef struct{
-    int *chromosome;
-    int fitness;
-  	int index;
+    	int *chromosome;
+    	int fitness;
+  	double probability;
+	int index;
+	
 }tspsIndividual_t;
 
 typedef struct{
@@ -16,14 +18,17 @@ typedef struct{
 }tspsPopulation_t;
 
 int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config);
-int *generateRandomChromosome(int chSize);
+int *generateRandomChromosome(int chSize, int index);
 void swap(int *a, int *b);
 int calculateFitnessChromosome(int *chromosome, tspsMap_t *map);
 int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config);
 int compare (const void *a, const void *b);
 int sortPopulation(tspsPopulation_t *pop);
-int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config);
-int mutatePopulation(tspsPopulation_t *pop, tspsConfig_t *config);
+int crossoverPopulation(tspsPopulation_t *pop, tspsPopulation_t *pop_buffer,  tspsConfig_t *config);
+//int pmx(tspsIndividual_t *first, tspsIndividual_t *second);
+
+int mutatePopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map);
+
 #endif /* POPULATION_H_ */
 

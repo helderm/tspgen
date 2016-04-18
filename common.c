@@ -43,7 +43,7 @@ int readConfig(tspsConfig_t *config, int argc, char **argv){
     }
 
     numGenerations = atoi(argv[3]);
-    if(numGenerations < 100 && numGenerations != 0){
+    if(numGenerations < 0 && numGenerations != 0){
         printf("Invalid number of generations (>= 100 | 0 if infinite)!\n Usage: ./tspgen <population size> <mutation rate> <number generations> <elitism number> <mutation size> <max breeding>\n");
         return TSPS_RC_FAILURE;
     }

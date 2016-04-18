@@ -13,6 +13,7 @@ int main(int argc, char **argv){
 	tspsMap_t map;
     	tspsConfig_t config;
     	tspsPopulation_t population;
+    	tspsPopulation_t population_buffer;
 
     	unsigned long int numGenerations = 0;
     	int mpiNumProcs = 0;
@@ -47,19 +48,30 @@ int main(int argc, char **argv){
         }
 
     	// start a timer (mpi_barrier + mpi_wtime)
-
+	printf("\n");
     	while(1){
 
         	numGenerations++;
 
-            calculateFitnessPopulation(&population, &map);
+            	calculateFitnessPopulation(&population, &map);
 
-            sortPopulation(&population);
+            	sortPopulation(&population);
 
-            crossoverPopulation(&population, &config);
-
-            mutatePopulation(&population, &config);
-
+            	crossoverPopulation(&population, &population_buffer,  &config);
+		/*printf("AFTER GENERATION: %lu\n ", numGenerations );
+		
+		int i,j;	
+	        for(i=0; i< population.numIndividuals; i++){
+                	for(j=0; j<NUM_NODES; j++){     
+                        	printf("%d ", population.individuals[i].chromosome[j]);  
+                	} printf("\n");
+        	}
+        
+        	printf("\n\n");
+		*/
+             	mutatePopulation(&population, &config);
+		
+		//calculateFitnessPopulation(&population, &map);	
             /*if(generateNewPopulation(&population, &config) != TSPS_RC_SUCCESS){
                 logg("Error! Unable to generate new random population!");
                 return TSPS_RC_FAILURE;
