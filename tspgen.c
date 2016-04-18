@@ -83,22 +83,33 @@ int main(int argc, char **argv){
 
         	// mutate population
 
-        	// end execution
-        	if(config.numGenerations > 0 && numGenerations == config.numGenerations){
-        		logg("* Max number of generations [%d] reached!\n", config.numGenerations);
-        		break;
-        	}
-
         	// migrate population at every n generation
+            if(numGenerations % config.migrationRate == 0){
+                logg("* Migration event! \n");
+                migrateIndividuals(&population, mpiId, mpiNumProcs);
+            }
+
+            if(config.numGenerations > 0 && numGenerations == config.numGenerations){
+                logg("* Max number of generations [%d] reached!\n", config.numGenerations);
+
+                break;
+            }
 
             if(numGenerations % 1000 == 0){
                 logg("- Generation %d...\n", numGenerations);
             }
     	}
 
+        calculateFitnessPopulation(&population, &map);
+        sortPopulation(&population);
+
     	// join all the populations
+        joinPopulations(&population, mpiId, mpiNumProcs);
+        sortPopulation(&population);
 
     	// get the best inidividual and print it
+        printIndividual(&population.individuals[0], "Top Individual");
+        printIndividual(&population.individuals[NUM_NODES-1], "Worst (of the top ones) Individual");
 
     	// stop the timer
 

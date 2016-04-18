@@ -30,5 +30,8 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsPopulation_t *pop_buffer,  ts
 int mutatePopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map);
 
+int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs);
+int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs);
+void printIndividual(tspsIndividual_t *ind, const char *label);
 #endif /* POPULATION_H_ */
 

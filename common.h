@@ -5,6 +5,7 @@
 #define TSPS_RC_FAILURE 1
 
 #define NUM_NODES 58
+#define MPI_MIGRATION_TAG 100
 
 typedef struct{
     int populationSize;
@@ -12,7 +13,7 @@ typedef struct{
     int numGenerations;
     int numElitism;
     int mutationSize;
-    int maxBreeding;
+    int migrationRate;
 } tspsConfig_t;
 
 void logg(const char * format, ...);
