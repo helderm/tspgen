@@ -141,8 +141,9 @@ int sortPopulation(tspsPopulation_t *pop){
 int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
 	int i, j, k, l;
-	//pop_buffer->numIndividuals = config->populationSize;
-        //pop_buffer->individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
+	tspsPopulation_t pop_buffer;
+	pop_buffer.numIndividuals = config->populationSize;
+        pop_buffer.individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
 
 	double fitness_sum;
 	for (i=0; i < config->populationSize; i++){
@@ -153,9 +154,9 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	//	printf("%lf\n", pop->individuals[i].probability);
 	}
 
-	/*for(i=0; i<config->numElitism; i++ ){
-		pop_buffer->individuals[i] = pop->individuals[i];
-	}*/
+	for(i=0; i<config->numElitism; i++ ){
+		pop_buffer.individuals[i] = pop->individuals[i];
+	}
 	/*
 	printf("\nTHE ELITES \n");
 	for (i=0; i<config->numElitism; i++){
@@ -209,12 +210,17 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			cross_ptwo = cross_pone;
 			cross_pone = temp;
 		}
-
-	//	printf("count: %d:%d :: %d %d", count-1, count, cross_pone, cross_ptwo);
-	//		printf("\n ");
-
-		int *child_1 = &pop->individuals[count-2].chrom[0]; //parent(1) number 10
-		int *child_2 = &pop->individuals[count-1].chrom[0]; //parent(2) number 11
+		/*
+		printf("count: %d:%d :: %d %d", count-1, count, cross_pone, cross_ptwo);
+			printf("\n ");
+		*/
+		int child_1[NUM_NODES] = {0};
+		int child_2[NUM_NODES] = {0};
+		
+		for (i=0; i<NUM_NODES; i++){
+			child_1[i] = pop->individuals[count-2].chrom[i]; //parent(1) number 10
+			child_2[i] = pop->individuals[count-1].chrom[i]; //parent(2) number 11
+		}
 		/*
 		for (i=0; i<NUM_NODES; i++){
 			printf("%d ",child_1[i] );
@@ -247,7 +253,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			child_1[i] = pop->individuals[count-2].chrom[i];
 			child_2[i] = pop->individuals[count-1].chrom[i];
 		}
-		/*
+		/*	
 		printf("\n");
 		for (i = 0; i < num; i++ ){
 			printf("%d ", vec_1[i] );
@@ -305,7 +311,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 				}
 			}
 		}
-		/*
+		/*	
 		printf("\n");
 
 		for (i = 0; i < NUM_NODES; i++ ){
@@ -318,16 +324,29 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 		}
 		printf("\n\n\n");
 		*/
-
+		for (i=0; i<NUM_NODES; i++){	
+			pop_buffer.individuals[count-2].chrom[i] = child_1[i];
+			pop_buffer.individuals[count-1].chrom[i] = child_2[i];
+		}
+		//pop = pop_buffer; 
+	//free(pop_buffer);
         free(vec_1);
         free(vec_2);
 	}
-
-	//printf("%d \n", pop->individuals[0].fitness);
+	
+	for(i=0; i<config->numElitism; i++ ){
+		pop->individuals[i] = pop_buffer.individuals[i];
+	}
+	for(i=config->numElitism; i<config->populationSize; i++ ){
+		pop->individuals[i] = pop_buffer.individuals[i];
+	}
+	
+	
+	printf("%d \n", pop->individuals[0].fitness);
 	/*for(j=0; j<NUM_NODES; j++){
         	printf("%d ", pop->individuals[0].chromosome[j]);
         } printf("\n");*/
-
+	//free(pop_buffer);
 
     return 0;
 }
