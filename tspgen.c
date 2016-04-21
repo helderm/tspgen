@@ -73,6 +73,8 @@ int main(int argc, char **argv){
        	printf("\n\n AFTER CROSSOVER:   ....................\n");
 	*/
         crossoverPopulation(&population,  &config);
+	
+//        printf("crossover dome");
 /*
 	for(i=0; i< population.numIndividuals; i++){
               	for(j=0; j<NUM_NODES; j++){
