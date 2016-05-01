@@ -4,7 +4,7 @@
 #define TSPS_RC_SUCCESS 0
 #define TSPS_RC_FAILURE 1
 
-#define NUM_NODES 58
+#define NUM_NODES 280
 #define MPI_MIGRATION_TAG 100
 
 typedef struct{

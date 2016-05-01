@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <mpi.h>
 #include <math.h>
+#include <assert.h>
 #include "common.h"
 #include "population.h"
 #include "map.h"
@@ -51,15 +52,18 @@ int generateRandomChromosome(tspsIndividual_t *ind, int index){
 	return TSPS_RC_SUCCESS;
 }
 
-int calculateFitnessChromosome(int *chromosome, tspsMap_t *map){
-	int fitnessValue=0;
+double calculateFitnessChromosome(int *chromosome, tspsMap_t *map){
+	int fitnessValue = 0.0;
 	int i, firstCity, secondCity;
+    int xd, yd;
 	for (i=0; i<NUM_NODES-1; i++){
 		firstCity = chromosome[i];
 		secondCity = chromosome[i+1];
-		fitnessValue = fitnessValue +  map->weights[firstCity][secondCity];
+        xd = map->nodes[firstCity].x - map->nodes[secondCity].x;
+        yd = map->nodes[firstCity].y - map->nodes[secondCity].y;
+		fitnessValue = fitnessValue +  rint(sqrt(xd*xd + yd*yd));
 	}
-	//printf("%d ", fitnessValue);
+	//printf("%f ", fitnessValue);
 	return fitnessValue;
 }
 
@@ -144,12 +148,12 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	//pop_buffer->numIndividuals = config->populationSize;
         //pop_buffer->individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
 
-	double fitness_sum;
+	/*double fitness_sum;
 	for (i=0; i < config->populationSize; i++){
 		fitness_sum = fitness_sum +  pop->individuals[i].fitness;
-	}
+	}*/
 	for (i=0; i < config->populationSize; i++){
-		pop->individuals[i].probability = pop->individuals[i].fitness/fitness_sum  ;
+		pop->individuals[i].probability = pop->individuals[i].fitness/pop->totalFitness;
 	//	printf("%lf\n", pop->individuals[i].probability);
 	}
 
@@ -333,22 +337,17 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 }
 
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
-    	int i,j;
+	int i;
+    int totalFitness = 0.0;
 
-	/*
-	for(i=0; i<pop->numIndividuals; i++){
-		for(j=0; j<NUM_NODES; j++){
-			printf("%d ", pop->individuals[i].chromosome[j]);   // city index starts from zero
-		} printf("\n");
-	}
+    for(i=0; i<pop->numIndividuals; i++){
+        pop->individuals[i].fitness = calculateFitnessChromosome(&pop->individuals[i].chrom[0], map);
+        totalFitness += pop->individuals[i].fitness;
+    }
 
-	printf("\n");
-	*/
-    	for(i=0; i<pop->numIndividuals; i++){
-        	pop->individuals[i].fitness = calculateFitnessChromosome(&pop->individuals[i].chrom[0], map);
-	}
+    pop->totalFitness = totalFitness;
 
-    	return TSPS_RC_SUCCESS;
+    return TSPS_RC_SUCCESS;
 }
 
 int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){

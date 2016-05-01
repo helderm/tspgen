@@ -52,7 +52,7 @@ int main(int argc, char **argv){
 
         calculateFitnessPopulation(&population, &map);
 
-        if(numGenerations % 1000 == 0){
+        if(numGenerations % 500 == 0){
             logg("- Generation %d...\n", numGenerations);
             printIndividual(&population.individuals[0], "Current Top Individual");
         }
@@ -86,6 +86,7 @@ int main(int argc, char **argv){
 
     logg("* tspgen finished!\n");
     free(population.individuals);
+    free(map.nodes);
     MPI_Finalize();
     return TSPS_RC_SUCCESS;
 }

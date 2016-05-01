@@ -15,12 +15,14 @@ typedef struct{
 typedef struct{
     tspsIndividual_t *individuals;
     int numIndividuals;
+    double totalFitness;
 }tspsPopulation_t;
 
 int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config);
 int generateRandomChromosome(tspsIndividual_t *ind, int index);
+int generateRandomChromosome2(tspsIndividual_t *ind);
 void swap(int *a, int *b);
-int calculateFitnessChromosome(int *chromosome, tspsMap_t *map);
+double calculateFitnessChromosome(int *chromosome, tspsMap_t *map);
 int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config);
 int compare (const void *a, const void *b);
 int sortPopulation(tspsPopulation_t *pop);
