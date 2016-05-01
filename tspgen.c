@@ -16,6 +16,7 @@ int main(int argc, char **argv){
 
     unsigned long int numGenerations = 0;
     int mpiNumProcs = 0;
+    double start, end;
 
     //starting MPI directives
     MPI_Init(NULL,NULL);
@@ -46,6 +47,10 @@ int main(int argc, char **argv){
     }
 
     // start a timer (mpi_barrier + mpi_wtime)
+    MPI_Barrier(MPI_COMM_WORLD);
+    start = MPI_Wtime();
+
+    logg("* Initializing reproduction loop...\n");
     while(1){
 
         numGenerations++;
@@ -63,27 +68,9 @@ int main(int argc, char **argv){
             logg("* Max number of generations [%d] reached!\n", config.numGenerations);
             break;
         }
-	/*	
-	int i,j;
-        for(i=0; i< population.numIndividuals; i++){
-               	for(j=0; j<NUM_NODES; j++){
-                       	printf("%d ", population.individuals[i].chrom[j]);
-               	} printf("\n");
-       	}
-       	printf("\n\n AFTER CROSSOVER:   ....................\n");
-	*/
-        crossoverPopulation(&population,  &config);
-	
-//        printf("crossover dome");
-/*
-	for(i=0; i< population.numIndividuals; i++){
-              	for(j=0; j<NUM_NODES; j++){
-                       	printf("%d ", population.individuals[i].chrom[j]);
-               	} printf("\n");
-        }
 
-        printf("\n\n");
-*/	
+        crossoverPopulation(&population,  &config);
+
         mutatePopulation(&population, &config);
 
         // migrate population at every n generation
@@ -101,11 +88,20 @@ int main(int argc, char **argv){
     printIndividual(&population.individuals[config.populationSize-1], "Worst (of the top ones) Individual");
 
     // stop the timer
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+    end = MPI_Wtime();
+
+    if(mpiId == 0) { /* use time on master node */
+        printf("* Runtime = %f\n", end-start);
+    }
 
     logg("* tspgen finished!\n");
     free(population.individuals);
     free(map.nodes);
     MPI_Finalize();
+
+
+
     return TSPS_RC_SUCCESS;
 }
 
