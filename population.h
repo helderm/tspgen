@@ -26,7 +26,7 @@ double calculateFitnessChromosome(int *chromosome, tspsMap_t *map);
 int generateNewPopulation(tspsPopulation_t *pop, tspsConfig_t *config);
 int compare (const void *a, const void *b);
 int sortPopulation(tspsPopulation_t *pop);
-int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config);
+int crossoverPopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int mutatePopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map);
 int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs);

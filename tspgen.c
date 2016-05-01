@@ -63,9 +63,27 @@ int main(int argc, char **argv){
             logg("* Max number of generations [%d] reached!\n", config.numGenerations);
             break;
         }
-
+	/*	
+	int i,j;
+        for(i=0; i< population.numIndividuals; i++){
+               	for(j=0; j<NUM_NODES; j++){
+                       	printf("%d ", population.individuals[i].chrom[j]);
+               	} printf("\n");
+       	}
+       	printf("\n\n AFTER CROSSOVER:   ....................\n");
+	*/
         crossoverPopulation(&population,  &config);
+	
+//        printf("crossover dome");
+/*
+	for(i=0; i< population.numIndividuals; i++){
+              	for(j=0; j<NUM_NODES; j++){
+                       	printf("%d ", population.individuals[i].chrom[j]);
+               	} printf("\n");
+        }
 
+        printf("\n\n");
+*/	
         mutatePopulation(&population, &config);
 
         // migrate population at every n generation
@@ -80,7 +98,7 @@ int main(int argc, char **argv){
 
     // get the best inidividual and print it
     printIndividual(&population.individuals[0], "Top Individual");
-    printIndividual(&population.individuals[NUM_NODES-1], "Worst (of the top ones) Individual");
+    printIndividual(&population.individuals[config.populationSize-1], "Worst (of the top ones) Individual");
 
     // stop the timer
 
