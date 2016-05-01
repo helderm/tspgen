@@ -185,7 +185,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	int min = 1;
 	// numElitism should be a even number
 	//while(count < config->populationSize){
-	for (count = 0 ; count<500; count= count+2){	
+	for (count = 0 ; count<500; count= count+2){
 		rndNumber_one = rand() / (double) RAND_MAX;
 		rndNumber_two = rand() / (double) RAND_MAX;
 		//count = count+2;
@@ -222,7 +222,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 		*/
 		int child_1[NUM_NODES] = {0};
 		int child_2[NUM_NODES] = {0};
-		
+
 		for (i=0; i<NUM_NODES; i++){
 			child_1[i] = pop->individuals[pick_one].chrom[i]; //parent(1) number 10
 			child_2[i] = pop->individuals[pick_two].chrom[i]; //parent(2) number 11
@@ -259,7 +259,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			child_1[i] = pop->individuals[pick_one].chrom[i];
 			child_2[i] = pop->individuals[pick_two].chrom[i];
 		}
-		/*	
+		/*
 		printf("\n");
 		for (i = 0; i < num; i++ ){
 			printf("%d ", vec_1[i] );
@@ -317,7 +317,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 				}
 			}
 		}
-		/*	
+		/*
 		printf("\n");
 
 		for (i = 0; i < NUM_NODES; i++ ){
@@ -330,16 +330,16 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 		}
 		printf("\n\n\n");
 		*/
-		for (i=0; i<NUM_NODES; i++){	
+		for (i=0; i<NUM_NODES; i++){
 			pop->individuals[config->populationSize-count-1].chrom[i] = child_1[i];
 			pop->individuals[config->populationSize-count-2].chrom[i] = child_2[i];
 		}
-		//pop = pop_buffer; 
+		//pop = pop_buffer;
 	//free(pop_buffer);
         free(vec_1);
         free(vec_2);
 	}
-	/*	
+	/*
 	for(i=0; i<config->numElitism; i++ ){
 		pop->individuals[i] = pop_buffer.individuals[i];
 	}
@@ -347,8 +347,8 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 		pop->individuals[i] = pop_buffer.individuals[i];
 	}
 	*/
-	
-	printf("%d \n", pop->individuals[0].fitness);
+
+	//printf("%d \n", pop->individuals[0].fitness);
 	/*for(j=0; j<NUM_NODES; j++){
         	printf("%d ", pop->individuals[0].chromosome[j]);
         } printf("\n");*/
