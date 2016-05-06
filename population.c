@@ -371,27 +371,29 @@ int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
     return TSPS_RC_SUCCESS;
 }
 
-int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
+int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs, tspsConfig_t *config){
 
     tspsIndividual_t *emigrant1 = NULL, *emigrant2 = NULL;
-    tspsIndividual_t imigrant1, imigrant2;
+    tspsIndividual_t *imigrant1 = NULL, *imigrant2 = NULL;
     int i=0, j=-1;
     MPI_Status status;
-    int chromSize = sizeof(int) * NUM_NODES;
+
+    // define how many individuals are going to migrate
+    int numMigrants = floor(pop->numIndividuals * config->migrationShare);
 
     //choose randomly for now the individual to migrate
-    i = rand() % (pop->numIndividuals/2);
+    i = rand() % (pop->numIndividuals - numMigrants);
     emigrant1 = &pop->individuals[i];
-    memset(&imigrant1, 0, sizeof(tspsIndividual_t));
+    imigrant1 = (tspsIndividual_t *)malloc(sizeof(tspsIndividual_t) * numMigrants);
 
     // choose another emigrant if they are in the middle of the process chain
     if(mpiId > 0 && mpiId < numProcs-1){
         do{
-            j = rand() % (pop->numIndividuals/2);
+            j = rand() % (pop->numIndividuals - numMigrants);
         } while(j == i);
 
         emigrant2 = &pop->individuals[j];
-        memset(&imigrant2, 0, sizeof(tspsIndividual_t));
+        imigrant2 = (tspsIndividual_t *)malloc(sizeof(tspsIndividual_t) * numMigrants);
     }
 
     /* red/black communication*/
@@ -401,21 +403,21 @@ int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
         if(mpiId < numProcs - 1){
             /* send emigrant to black at my right */
             //printf("+ Pr[%d]: Sending to [%d]... \n", mpiId, mpiId+1);
-            MPI_Send(emigrant1, sizeof(tspsIndividual_t), MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+            MPI_Send(emigrant1, sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
 
             /* receive imigrant from black at my right */
             //printf("+ Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId+1);
-            MPI_Recv(&imigrant1, sizeof(tspsIndividual_t), MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv(imigrant1, sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
         }
 
         if(mpiId > 0){
             /* send emigrant to black at my left */
             //printf("+ Pr[%d]: Sending to [%d]... \n", mpiId, mpiId-1);
-            MPI_Send((mpiId < numProcs - 1? emigrant2 : emigrant1), sizeof(tspsIndividual_t), MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+            MPI_Send((mpiId < numProcs - 1? emigrant2 : emigrant1), sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
 
             /* receive imigrant from black at my left */
             //printf("+ Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId-1);
-            MPI_Recv((mpiId < numProcs - 1? &imigrant2 : &imigrant1), sizeof(tspsIndividual_t), MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv((mpiId < numProcs - 1? imigrant2 : imigrant1), sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
         }
 
     } else {
@@ -423,32 +425,36 @@ int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs){
         if(mpiId > 0){
             /* receive imigrant from red at my left */
             //printf("- Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId-1);
-            MPI_Recv(&imigrant1, sizeof(tspsIndividual_t), MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv(imigrant1, sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+
 
             /* send emigrant to red at my left */
             //printf("- Pr[%d]: Sending to [%d]... \n", mpiId, mpiId-1);
-            MPI_Send(emigrant1, sizeof(tspsIndividual_t), MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+            MPI_Send(emigrant1, sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId-1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
         }
 
         if(mpiId < numProcs-1){
             /* receive imigrant from red at my right */
             //printf("- Pr[%d]: Receiving from [%d]... \n", mpiId, mpiId+1);
-            MPI_Recv((mpiId > 0? &imigrant2 : &imigrant1), sizeof(tspsIndividual_t), MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv((mpiId > 0? imigrant2 : imigrant1), sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status );
 
             /* send emigrant to red at my right */
             //printf("- Pr[%d]: Sending to [%d]... \n", mpiId, mpiId+1);
-            MPI_Send((mpiId > 0? emigrant2 : emigrant1), sizeof(tspsIndividual_t), MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+            MPI_Send((mpiId > 0? emigrant2 : emigrant1), sizeof(tspsIndividual_t) * numMigrants, MPI_CHAR, mpiId+1, MPI_MIGRATION_TAG, MPI_COMM_WORLD);
         }
     }
 
     // move imigrants to our current population
     if(numProcs > 1){
-        memcpy(&pop->individuals[i], &imigrant1, sizeof(tspsIndividual_t));
+        memcpy(&pop->individuals[i], imigrant1, sizeof(tspsIndividual_t) * numMigrants);
     }
 
     if(mpiId > 0 && mpiId < numProcs-1){
-        memcpy(&pop->individuals[j], &imigrant2, sizeof(tspsIndividual_t));
+        memcpy(&pop->individuals[j], imigrant2, sizeof(tspsIndividual_t) * numMigrants);
     }
+
+    free(imigrant1);
+    free(imigrant2);
 }
 
 int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs){

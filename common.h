@@ -14,6 +14,7 @@ typedef struct{
     int numElitism;
     int mutationSize;
     int migrationRate;
+    float migrationShare;
 } tspsConfig_t;
 
 void logg(const char * format, ...);

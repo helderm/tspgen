@@ -75,7 +75,7 @@ int main(int argc, char **argv){
 
         // migrate population at every n generation
         if(numGenerations % config.migrationRate == 0){
-            migrateIndividuals(&population, mpiId, mpiNumProcs);
+            migrateIndividuals(&population, mpiId, mpiNumProcs, &config);
         }
     }
 

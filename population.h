@@ -29,7 +29,7 @@ int sortPopulation(tspsPopulation_t *pop);
 int crossoverPopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int mutatePopulation(tspsPopulation_t *pop,  tspsConfig_t *config);
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map);
-int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs);
+int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs, tspsConfig_t *config);
 int joinPopulations(tspsPopulation_t *pop, int mpiId, int mpiNumProcs);
 void printIndividual(tspsIndividual_t *ind, const char *label);
 #endif /* POPULATION_H_ */
