@@ -9,6 +9,7 @@
 #include "population.h"
 #include "map.h"
 
+//Each process generates its own sub-population using the pseudo random number generator
 int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
 	pop->numIndividuals = config->populationSize;
@@ -17,15 +18,13 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	int i;
 	for(i=0; i<pop->numIndividuals; i++){
 		generateRandomChromosome(&pop->individuals[i], i);
-        //memcpy(pop->individuals[i].chrom, pop->individuals[i].chromosome, sizeof(pop->individuals[i].chrom));
-    }
+    	}
 
 	return TSPS_RC_SUCCESS;
 }
 
+//Each process generates its own sub-population using the pseudo random number generator
 int generateRandomChromosome(tspsIndividual_t *ind, int index){
-	//int *arr = (int	*)malloc(NUM_NODES*sizeof(int));
-	//int arr[NUM_NODES]={0};
 	int ii;
 	for(ii=0; ii<NUM_NODES; ii++){
 		ind->chrom[ii] = ii;   // city index starts from zero
@@ -44,14 +43,10 @@ int generateRandomChromosome(tspsIndividual_t *ind, int index){
         		ind->chrom[i] = t;
     	}
 
-	/*
-	for(i=0; i<chSize; i++){
-		printf("%d ", arr[i]);   // city index starts from zero
-	}printf("\n");
-	*/
 	return TSPS_RC_SUCCESS;
 }
 
+//This function calculates the fitness value of each chromosome the parsed map stored in the directory
 double calculateFitnessChromosome(int *chromosome, tspsMap_t *map){
 	int fitnessValue = 0.0;
 	int i, firstCity, secondCity;
@@ -63,7 +58,6 @@ double calculateFitnessChromosome(int *chromosome, tspsMap_t *map){
         yd = map->nodes[firstCity].y - map->nodes[secondCity].y;
 		fitnessValue = fitnessValue +  rint(sqrt(xd*xd + yd*yd));
 	}
-	//printf("%f ", fitnessValue);
 	return fitnessValue;
 }
 
@@ -142,35 +136,14 @@ int sortPopulation(tspsPopulation_t *pop){
     return TSPS_RC_SUCCESS;
 }
 
+//This function is an implementation of PMX crossover operation
 int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
 	int i, j, k, l;
-	//tspsPopulation_t pop_buffer;
-	//pop_buffer.numIndividuals = config->populationSize;
-        //pop_buffer.individuals = (tspsIndividual_t*)malloc(pop->numIndividuals * sizeof(tspsIndividual_t));
-
-	/*double fitness_sum;
-	for (i=0; i < config->populationSize; i++){
-		fitness_sum = fitness_sum +  pop->individuals[i].fitness;
-	}*/
 	for (i=0; i < config->populationSize; i++){
 		pop->individuals[i].probability = pop->individuals[i].fitness/pop->totalFitness;
-	//	printf("%lf\n", pop->individuals[i].probability);
 	}
 
-	/*for(i=0; i<config->numElitism; i++ ){
-		pop_buffer.individuals[i] = pop->individuals[i];
-	}*/
-	/*
-	printf("\nTHE ELITES \n");
-	for (i=0; i<config->numElitism; i++){
-		for (j=0; j<NUM_NODES; j++){
-			printf("%d ", pop->individuals[i].chromosome[j] );
-		}
-		printf("\n");
-	}
-	printf("\n");
-	*/
 	double rndNumber_one, rndNumber_two ;
 	int cross_pone, cross_ptwo;
 
@@ -183,9 +156,8 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	int temp;
 	int max = NUM_NODES -1;
 	int min = 1;
-	// numElitism should be a even number
-	//while(count < config->populationSize){
 	for (count = 0 ; count<500; count= count+2){
+		// selection of two parents based on sampling from the multinomial distribution
 		rndNumber_one = rand() / (double) RAND_MAX;
 		rndNumber_two = rand() / (double) RAND_MAX;
 		//count = count+2;
@@ -204,10 +176,10 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
         			break;
     			}
 		}
-	//	printf("PICKS: %d %d\n",pick_one, pick_two );
 		offset_one=0; offset_two=0;
 
 		//pmx function
+		//random selection of two delimiters - crossover points	
 		cross_pone = (max - min + 1)*(double)rand()/RAND_MAX + min;
 		cross_ptwo = (max - min + 1)*(double)rand()/RAND_MAX + min;
 
@@ -216,10 +188,6 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			cross_ptwo = cross_pone;
 			cross_pone = temp;
 		}
-		/*
-		printf("count: %d:%d :: %d %d", count-1, count, cross_pone, cross_ptwo);
-			printf("\n ");
-		*/
 		int child_1[NUM_NODES] = {0};
 		int child_2[NUM_NODES] = {0};
 
@@ -227,20 +195,11 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			child_1[i] = pop->individuals[pick_one].chrom[i]; //parent(1) number 10
 			child_2[i] = pop->individuals[pick_two].chrom[i]; //parent(2) number 11
 		}
-		/*
-		for (i=0; i<NUM_NODES; i++){
-			printf("%d ",child_1[i] );
-		}
-			printf("\n ");
-		for (i=0; i<NUM_NODES; i++){
-			printf("%d ",child_2[i] );
-		}
-		*/
 		int *vec_1 = (int*)malloc((cross_ptwo-cross_pone)*sizeof(int));
 		int *vec_2 = (int*)malloc((cross_ptwo-cross_pone)*sizeof(int));
 		int num=0;
-		//printf("\n ");
 
+		//swapping the segment of chromosome between the two delimiters
 		for (i = cross_pone; i < cross_ptwo; i++ ){
 			int tem = child_1[i];
 			child_1[i] = child_2[i]; //
@@ -250,7 +209,8 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			vec_2[num] = child_2[i];
 			num++;
 		}
-
+		
+		//copy rest of the segment from parents to children
 		for(i = 0; i<cross_pone; i++){
 			child_1[i] = pop->individuals[pick_one].chrom[i];
 			child_2[i] = pop->individuals[pick_two].chrom[i];
@@ -259,19 +219,8 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			child_1[i] = pop->individuals[pick_one].chrom[i];
 			child_2[i] = pop->individuals[pick_two].chrom[i];
 		}
-		/*
-		printf("\n");
-		for (i = 0; i < num; i++ ){
-			printf("%d ", vec_1[i] );
-		}
-		printf("\n");
-
-		for (i = 0; i < num; i++ ){
-			printf("%d ", vec_2[i] );
-		}
-		printf("\n\n");
-		*/
 		int buf, flag=0;
+		//solving the conflicts that arise due to above swapping procedure.
 		for (i = 0; i < num; i++ ){
 			if(flag==1){
 				i=i-1;
@@ -287,17 +236,6 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 				}
 			}
 		}
-		/*
-		for (i = 0; i < num; i++ ){
-			printf("%d ",vec_1[i] );
-		}
-		printf("\n");
-
-		for (i = 0; i < num; i++ ){
-			printf("%d ",vec_2[i] );
-		}
-		printf("\nfinals........................");
-		*/
 		for (i=0; i<num; i++){
 			for(j = 0; j<cross_pone; j++){
 				if(vec_1[i]==child_1[j]){
@@ -317,46 +255,19 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 				}
 			}
 		}
-		/*
-		printf("\n");
-
-		for (i = 0; i < NUM_NODES; i++ ){
-			printf("%d ", child_1[i] );
-		}
-		printf("\n");
-
-		for (i = 0; i < NUM_NODES; i++ ){
-			printf("%d ", child_2[i] );
-		}
-		printf("\n\n\n");
-		*/
+		// replacing the worst candidates in the previous generations with the new children. 
 		for (i=0; i<NUM_NODES; i++){
 			pop->individuals[config->populationSize-count-1].chrom[i] = child_1[i];
 			pop->individuals[config->populationSize-count-2].chrom[i] = child_2[i];
 		}
-		//pop = pop_buffer;
-	//free(pop_buffer);
-        free(vec_1);
-        free(vec_2);
+        	free(vec_1);
+        	free(vec_2);
 	}
-	/*
-	for(i=0; i<config->numElitism; i++ ){
-		pop->individuals[i] = pop_buffer.individuals[i];
-	}
-	for(i=config->numElitism; i<config->populationSize; i++ ){
-		pop->individuals[i] = pop_buffer.individuals[i];
-	}
-	*/
-
-	//printf("%d \n", pop->individuals[0].fitness);
-	/*for(j=0; j<NUM_NODES; j++){
-        	printf("%d ", pop->individuals[0].chromosome[j]);
-        } printf("\n");*/
-	//free(pop_buffer);
 
     return 0;
 }
 
+// This function calculates the fitness value of each chromosome.
 int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
 	int i;
     int totalFitness = 0.0;
@@ -371,6 +282,7 @@ int calculateFitnessPopulation(tspsPopulation_t *pop, tspsMap_t *map){
     return TSPS_RC_SUCCESS;
 }
 
+// COMMUNICATION : using RED-BLACK communication
 int migrateIndividuals(tspsPopulation_t *pop, int mpiId, int numProcs, tspsConfig_t *config){
 
     tspsIndividual_t *emigrant1 = NULL, *emigrant2 = NULL;
