@@ -9,5 +9,4 @@ clean:
 	rm -f tspgen
 
 .PHONY: all
-all:
-	tspgen
+all: tspgen
