@@ -100,8 +100,6 @@ int main(int argc, char **argv){
     free(map.nodes);
     MPI_Finalize();
 
-
-
     return TSPS_RC_SUCCESS;
 }
 

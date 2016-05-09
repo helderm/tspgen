@@ -16,7 +16,7 @@ int parseMap(tspsMap_t *map){
         return TSPS_RC_FAILURE;
 
     weights = strstr(file, "NODE_COORD_SECTION");
-    weights += 20;
+    weights += 19;
 
     map->numNodes = NUM_NODES;
     map->nodes = (tspsNode*)malloc(sizeof(tspsNode)*map->numNodes);
@@ -61,9 +61,9 @@ int loadMap(char **file){
     char *buffer;
     size_t result;
 
-    if((pFile = fopen("maps/a280.tsp", "rb")) == NULL &&
-        (pFile = fopen("../maps/a280.tsp", "rb")) == NULL &&
-        (pFile = fopen("a280.tsp", "rb")) == NULL){
+    if((pFile = fopen("maps/berlin52.tsp", "rb")) == NULL &&
+        (pFile = fopen("../maps/berlin52.tsp", "rb")) == NULL &&
+        (pFile = fopen("berlin52.tsp", "rb")) == NULL){
 
         return TSPS_RC_FAILURE;
     }

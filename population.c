@@ -23,7 +23,7 @@ int generatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 	return TSPS_RC_SUCCESS;
 }
 
-//Each process generates its own sub-population using the pseudo random number generator
+//Generates a new random chromossome
 int generateRandomChromosome(tspsIndividual_t *ind, int index){
 	int ii;
 	for(ii=0; ii<NUM_NODES; ii++){
@@ -76,6 +76,7 @@ int compare (const void *a, const void *b)
   return ( popA->fitness - popB->fitness );
 }
 
+//mutate the population
 int mutatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 
     tspsIndividual_t *ind = NULL;
@@ -122,15 +123,13 @@ int mutatePopulation(tspsPopulation_t *pop, tspsConfig_t *config){
             ind->chrom[index1] = ind->chrom[index2];
             ind->chrom[index2] = aux;
         }
-
-        //recalculate the fitness
-        //ind->fitness = calculateFitnessChromosome(ind->chromosome, map);
     }
 
     return TSPS_RC_SUCCESS;
 
 }
 
+//sort the population by increasing fitness
 int sortPopulation(tspsPopulation_t *pop){
     qsort(pop->individuals, pop->numIndividuals, sizeof(tspsIndividual_t), compare);
     return TSPS_RC_SUCCESS;
@@ -179,7 +178,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 		offset_one=0; offset_two=0;
 
 		//pmx function
-		//random selection of two delimiters - crossover points	
+		//random selection of two delimiters - crossover points
 		cross_pone = (max - min + 1)*(double)rand()/RAND_MAX + min;
 		cross_ptwo = (max - min + 1)*(double)rand()/RAND_MAX + min;
 
@@ -209,7 +208,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 			vec_2[num] = child_2[i];
 			num++;
 		}
-		
+
 		//copy rest of the segment from parents to children
 		for(i = 0; i<cross_pone; i++){
 			child_1[i] = pop->individuals[pick_one].chrom[i];
@@ -255,7 +254,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsConfig_t *config){
 				}
 			}
 		}
-		// replacing the worst candidates in the previous generations with the new children. 
+		// replacing the worst candidates in the previous generations with the new children.
 		for (i=0; i<NUM_NODES; i++){
 			pop->individuals[config->populationSize-count-1].chrom[i] = child_1[i];
 			pop->individuals[config->populationSize-count-2].chrom[i] = child_2[i];
